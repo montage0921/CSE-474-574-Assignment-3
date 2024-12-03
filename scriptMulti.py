@@ -343,7 +343,11 @@ if __name__ == "__main__":
     train_acc = svc_linear.score(train_data_sample, train_label_sample)
     val_acc = svc_linear.score(validation_data, validation_label)
     test_acc = svc_linear.score(test_data, test_label)
-    results['Linear Kernel'] = {'train': train_acc, 'val': val_acc, 'test': test_acc}
+    print("-----------------Linear Kenrel-----------------")
+    print(f"training accuracy for linear kernel is {train_acc}")
+    print(f"validation accuracy for linear kernel is {val_acc}")
+    print(f"Testing accuracy for linear kernel is {test_acc}")
+    # results['Linear Kernel'] = {'train': train_acc, 'val': val_acc, 'test': test_acc}
 
     # radial basis with gamma=1
     svc_rbf1 = svm.SVC(kernel='rbf', gamma=1)
@@ -351,7 +355,11 @@ if __name__ == "__main__":
     train_acc_rbf1 = svc_rbf1.score(train_data_sample, train_label_sample)
     val_acc_rbf1 = svc_rbf1.score(validation_data, validation_label)
     test_acc_rbf1 = svc_rbf1.score(test_data, test_label)
-    results['RBF Kernel (gamma=1)'] = {'train': train_acc_rbf1, 'val': val_acc_rbf1, 'test': test_acc_rbf1}
+    print("------------------RBF Kernel with Gamma = 1-----------------")
+    print(f"training accuracy for RBF Kernel with Gamma = 1 is {train_acc_rbf1}")
+    print(f"validation accuracy for RBF Kernel with Gamma = 1 is {val_acc_rbf1}")
+    print(f"Testing accuracy for RBF Kernel with Gamma = 1 is {test_acc_rbf1}")
+    # results['RBF Kernel (gamma=1)'] = {'train': train_acc_rbf1, 'val': val_acc_rbf1, 'test': test_acc_rbf1}
 
     # radial basis with gamma set to default
     svc_rbf_default = svm.SVC(kernel='rbf')
@@ -359,8 +367,11 @@ if __name__ == "__main__":
     train_acc_rbf_default = svc_rbf_default.score(train_data_sample, train_label_sample)
     val_acc_rbf_default = svc_rbf_default.score(validation_data, validation_label)
     test_acc_rbf_default = svc_rbf_default.score(test_data, test_label)
-    results['RBF Kernel (gamma=default)'] = {'train': train_acc_rbf_default, 'val': val_acc_rbf_default,
-                                             'test': test_acc_rbf_default}
+    print("------------------RBF Kernel with Default Gamma-----------------")
+    print(f"training accuracy for RBF Kernel with default Gamma is {train_acc_rbf_default}")
+    print(f"validation accuracy for RBF Kernel with default Gamma is {val_acc_rbf_default}")
+    print(f"Testing accuracy for RBF Kernel with default Gamma is {test_acc_rbf_default}")
+    # results['RBF Kernel (gamma=default)'] = {'train': train_acc_rbf_default, 'val': val_acc_rbf_default, 'test': test_acc_rbf_default}
 
     # radial basis with default gamma but different C_value
     C_values = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -390,10 +401,18 @@ if __name__ == "__main__":
     plt.grid(alpha=0.4)
     plt.show()
 
-    # print accuracy for first 3 svm models
-    for key in results.keys():
-        print(results[key])
-    
+    print("# ----------- Optimal Solution ----------------------")
+    # C =20, Default Gamma, RBF Kernel
+    optimal_svc=svm.SVC(kernel='rbf', C=20)
+    svc_rbf.fit(train_data, train_label.ravel())
+    train_acc_optimal_svc = optimal_svc.score(train_data, train_label)
+    val_acc_optimal_svc = optimal_svc.score(validation_data, validation_label)
+    test_acc_optimal_svc = optimal_svc.score(test_data, test_label)
+    print("------------------RBF Kernel with Default Gamma-----------------")
+    print(f"training accuracy for Optimal SVC is {train_acc_optimal_svc}")
+    print(f"validation accuracy for Optimal SVC is {val_acc_optimal_svc}")
+    print(f"Testing accuracy for Optimal SVC is {test_acc_optimal_svc}")
+
 
     """
     Script for Extra Credit Part

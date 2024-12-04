@@ -160,7 +160,6 @@ def blrPredict(W, data):
 
     return label
 
-
 def mlrObjFunction(params, *args):
     """
     mlrObjFunction computes multi-class Logistic Regression error function and
@@ -188,9 +187,10 @@ def mlrObjFunction(params, *args):
     weights = params.reshape((n_feature + 1, n_class))
     z = np.dot(train_data, weights)
     y_pre = np.exp(z - np.max(z, axis=1, keepdims=True)) / np.sum(np.exp(z - np.max(z, axis=1, keepdims=True)), axis=1, keepdims=True) # softmax
-    error = -np.sum(labeli * np.log(y_pre))
-    error_grad = np.dot(train_data.T, (y_pre - labeli))
+    error = -np.sum(labeli*np.log(y_pre))/n_data
+    error_grad = np.dot(train_data.T, (y_pre - labeli))/n_data
     error_grad = error_grad.flatten()
+
 
     ##################
     # YOUR CODE HERE #
@@ -198,7 +198,6 @@ def mlrObjFunction(params, *args):
     # HINT: Do not forget to add the bias term to your input data
 
     return error, error_grad
-
 
 def mlrPredict(W, data):
     """
@@ -404,7 +403,7 @@ if __name__ == "__main__":
     print("# ----------- Optimal Solution ----------------------")
     # C =20, Default Gamma, RBF Kernel
     optimal_svc=svm.SVC(kernel='rbf', C=20)
-    svc_rbf.fit(train_data, train_label.ravel())
+    optimal_svc.fit(train_data, train_label.ravel())
     train_acc_optimal_svc = optimal_svc.score(train_data, train_label)
     val_acc_optimal_svc = optimal_svc.score(validation_data, validation_label)
     test_acc_optimal_svc = optimal_svc.score(test_data, test_label)

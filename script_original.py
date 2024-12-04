@@ -109,22 +109,22 @@ def blrObjFunction(initialWeights, *args):
 
     n_data = train_data.shape[0]
     n_features = train_data.shape[1]
-    # ----------- above is given ------------------
-
-    bias = np.ones([n_data, 1])
-    train_data = np.c_[bias, train_data]
-    weights = initialWeights.reshape((n_features + 1, 1))
-    z = np.dot(train_data, weights)
-    y_pre = sigmoid(z)
-    error = -np.sum(labeli * np.log(y_pre) + (1 - labeli) * np.log(1 - y_pre)) / n_data
-    error_grad = np.dot(train_data.T, (y_pre - labeli)) / n_data
-
-    error_grad = error_grad.flatten()  # transform to 1D array
-
+    
     ##################
     # YOUR CODE HERE #
     ##################
     # HINT: Do not forget to add the bias term to your input data
+    initialWeights = initialWeights.reshape((n_features + 1, 1))
+    X = np.hstack((np.ones((n_data, 1)), train_data))
+
+    z = np.dot(X, initialWeights)  
+    h = sigmoid(z) 
+
+   
+    error = -np.mean(labeli * np.log(h) + (1 - labeli) * np.log(1 - h))
+
+    
+    error_grad = np.dot(X.T, (h - labeli)) / n_data
 
     return error, error_grad
 
@@ -158,7 +158,6 @@ def blrPredict(W, data):
 
     return label
 
-
 def mlrObjFunction(params, *args):
     """
     mlrObjFunction computes multi-class Logistic Regression error function and
@@ -178,22 +177,15 @@ def mlrObjFunction(params, *args):
     train_data, labeli = args
     n_data = train_data.shape[0]
     n_feature = train_data.shape[1]
+    error = 0
     n_class = 10
-
-
-    bias = np.ones([n_data, 1])
-    train_data = np.c_[bias, train_data]
-    weights = params.reshape((n_feature + 1, n_class))
-    z = np.dot(train_data, weights)
-    y_pre = np.exp(z - np.max(z, axis=1, keepdims=True)) / np.sum(np.exp(z - np.max(z, axis=1, keepdims=True)), axis=1, keepdims=True) # softmax
-    error = -np.sum(labeli * np.log(y_pre))
-    error_grad = np.dot(train_data.T, (y_pre - labeli))
-    error_grad = error_grad.flatten()
+    error_grad = np.zeros((n_feature + 1, n_class))
 
     ##################
     # YOUR CODE HERE #
     ##################
     # HINT: Do not forget to add the bias term to your input data
+
 
     return error, error_grad
 
@@ -213,18 +205,7 @@ def mlrPredict(W, data):
          corresponding feature vector given in data matrix
 
     """
-    n_data = data.shape[0]
-    n_feature = data.shape[1]
-    n_class = 10
-
-    bias = np.ones([n_data, 1])
-    data = np.c_[bias, data]
-    weights = W.reshape((n_feature + 1, n_class))
-    z = np.dot(data, weights)
-    y_pre = np.exp(z - np.max(z, axis=1, keepdims=True)) / np.sum(np.exp(z - np.max(z, axis=1, keepdims=True)), axis=1,
-                                                                  keepdims=True)  # softmax
-
-    label = np.argmax(y_pre, axis=1).reshape(-1, 1)
+    label = np.zeros((data.shape[0], 1))
 
     ##################
     # YOUR CODE HERE #
@@ -233,169 +214,58 @@ def mlrPredict(W, data):
 
     return label
 
-
 if __name__ == "__main__":
 
     """
     Script for Logistic Regression
     """
     train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
+    
     # number of classes
     n_class = 10
-
+    
     # number of training samples
     n_train = train_data.shape[0]
-
+    
     # number of features
     n_feature = train_data.shape[1]
-
+    
     Y = np.zeros((n_train, n_class))
     for i in range(n_class):
         Y[:, i] = (train_label == i).astype(int).ravel()
-
-    # MY CODE
-    training_error = []
-    testing_error = []
-
-    '''
-
+    
     # Logistic Regression with Gradient Descent
     W = np.zeros((n_feature + 1, n_class))
-    # initialWeights = np.zeros((n_feature + 1, 1))
-    initialWeights = np.zeros((n_feature + 1,))
+    initialWeights = np.zeros((n_feature + 1, 1)).flatten()
     opts = {'maxiter': 100}
     for i in range(n_class):
         labeli = Y[:, i].reshape(n_train, 1)
         args = (train_data, labeli)
         nn_params = minimize(blrObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
         W[:, i] = nn_params.x.reshape((n_feature + 1,))
-
+    
     # Find the accuracy on Training Dataset
     predicted_label = blrPredict(W, train_data)
     print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
-
+    
     # Find the accuracy on Validation Dataset
     predicted_label = blrPredict(W, validation_data)
     print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label == validation_label).astype(float))) + '%')
-
+    
     # Find the accuracy on Testing Dataset
     predicted_label = blrPredict(W, test_data)
     print('\n Testing set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
-
-    """
-    # MY CODE
-    training_error=[]
-    testing_error=[]
-
-    for i in range(n_class):
-        labeli = Y[:, i].reshape(n_train, 1)
-        args = (train_data, labeli)
-        error, _ = blrObjFunction(W[:, i], *args)
-        training_error.append(error)
-
-        labeli_test = (test_label == i).astype(int).ravel().reshape(-1, 1)
-        args_test = (test_data, labeli_test)
-        error_test, _ = blrObjFunction(W[:, i], *args_test)
-        testing_error.append(error_test)
-
-    training_error = [float(e) for e in training_error]
-    testing_error = [float(e) for e in testing_error]
-
-    print("\nTraining Error for each class: ", training_error)
-    print("\nTesting Error for each class: ", testing_error)
-
-    classes = list(range(10)) 
-
-    plt.figure(figsize=(10, 6))
-    plt.bar(classes, training_error, width=0.4, label='Training Error', align='center', alpha=0.7)
-    plt.bar([c + 0.4 for c in classes], testing_error, width=0.4, label='Testing Error', align='center', alpha=0.7)
-
-    plt.xlabel('Class (Digit)', fontsize=12)
-    plt.ylabel('Error', fontsize=12)
-    plt.title('Training vs Testing Error for Each Class', fontsize=14)
-    plt.xticks([c + 0.2 for c in n_class], classes)
-    plt.legend(fontsize=12)
-    plt.grid(axis='y', alpha=0.4)
-
-    plt.tight_layout()
-    plt.show()
-
-    # ---------- MY CODE END HERE ----------------------------
-    """
-
+    
     """
     Script for Support Vector Machine
     """
-
+    
     print('\n\n--------------SVM-------------------\n\n')
     ##################
     # YOUR CODE HERE #
     ##################
-
-    sample = np.random.choice(len(train_data), 10000, replace=False)
-    train_data = train_data[sample]
-    train_label = train_label[sample]
-
-
-    results = {}
-    # linear kernel
-    svc_linear = svm.SVC(kernel='linear')
-    svc_linear.fit(train_data, train_label.ravel())
-    train_acc = np.mean(train_label == svc_linear.predict(train_data))
-    val_acc = np.mean(validation_label == svc_linear.predict(validation_data))
-    test_acc = np.mean(test_label == svc_linear.predict(test_data))
-    results['Linear Kernel'] = {'train': train_acc, 'val': val_acc, 'test': test_acc}
-
-    # radial basis with gamma=1
-    svc_rbf1 = svm.SVC(kernel='rbf', gamma=1)
-    svc_rbf1.fit(train_data, train_label.ravel())
-    train_acc_rbf1 = np.mean(train_label == svc_rbf1.predict(train_data))
-    val_acc_rbf1 = np.mean(validation_label == svc_rbf1.predict(validation_data))
-    test_acc_rbf1 = np.mean(test_label == svc_rbf1.predict(test_data))
-    results['RBF Kernel (gamma=1)'] = {'train': train_acc_rbf1, 'val': val_acc_rbf1, 'test': test_acc_rbf1}
-
-    # radial basis with gamma set to default
-    svc_rbf_default = svm.SVC(kernel='rbf')
-    svc_rbf_default.fit(train_data, train_label.ravel())
-    train_acc_rbf_default = np.mean(train_label == svc_rbf_default.predict(train_data))
-    val_acc_rbf_default = np.mean(validation_label == svc_rbf_default.predict(validation_data))
-    test_acc_rbf_default = np.mean(test_label == svc_rbf_default.predict(test_data))
-    results['RBF Kernel (gamma=default)'] = {'train': train_acc_rbf_default, 'val': val_acc_rbf_default,
-                                             'test': test_acc_rbf_default}
-
-    # radial basis with default gamma but different C_value
-    C_values = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    accuracy_results = []
-
-    for C in C_values:
-        svc_rbf = svm.SVC(kernel='rbf', C=C)
-        svc_rbf.fit(train_data, train_label.ravel())
-        train_acc_rbf = np.mean(train_label == svc_rbf.predict(train_data))
-        val_acc_rbf = np.mean(validation_label == svc_rbf.predict(validation_data))
-        test_acc_rbf = np.mean(test_label == svc_rbf.predict(test_data))
-        accuracy_results.append({'C': C, 'train': train_acc_rbf, 'val': val_acc_rbf, 'test': test_acc_rbf})
-
-    C_values = [result['C'] for result in accuracy_results]
-    train_accs = [result['train'] for result in accuracy_results]
-    val_accs = [result['val'] for result in accuracy_results]
-    test_accs = [result['test'] for result in accuracy_results]
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(C_values, train_accs, label='Training Accuracy', marker='o')
-    plt.plot(C_values, val_accs, label='Validation Accuracy', marker='o')
-    plt.plot(C_values, test_accs, label='Testing Accuracy', marker='o')
-    plt.xlabel('C Value', fontsize=12)
-    plt.ylabel('Accuracy', fontsize=12)
-    plt.title('Accuracy vs C Value for RBF Kernel', fontsize=14)
-    plt.legend(fontsize=12)
-    plt.grid(alpha=0.4)
-    plt.show()
-
-    # print accuracy for first 3 svm models
-    for key in results.keys():
-        print(results[key])
-    '''
-
+    
+    
     """
     Script for Extra Credit Part
     """
@@ -403,20 +273,20 @@ if __name__ == "__main__":
     W_b = np.zeros((n_feature + 1, n_class))
     initialWeights_b = np.zeros((n_feature + 1, n_class))
     opts_b = {'maxiter': 100}
-
+    
     args_b = (train_data, Y)
     nn_params = minimize(mlrObjFunction, initialWeights_b, jac=True, args=args_b, method='CG', options=opts_b)
     W_b = nn_params.x.reshape((n_feature + 1, n_class))
-
+    
     # Find the accuracy on Training Dataset
     predicted_label_b = mlrPredict(W_b, train_data)
     print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label_b == train_label).astype(float))) + '%')
-
+    
     # Find the accuracy on Validation Dataset
     predicted_label_b = mlrPredict(W_b, validation_data)
-    print(
-        '\n Validation set Accuracy:' + str(100 * np.mean((predicted_label_b == validation_label).astype(float))) + '%')
-
+    print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label_b == validation_label).astype(float))) + '%')
+    
     # Find the accuracy on Testing Dataset
     predicted_label_b = mlrPredict(W_b, test_data)
     print('\n Testing set Accuracy:' + str(100 * np.mean((predicted_label_b == test_label).astype(float))) + '%')
+    
